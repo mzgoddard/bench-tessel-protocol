@@ -31,8 +31,10 @@ fn main() {
         sleep(Duration::from_millis(1000));
         let mut s = UnixStream::connect("/tmp/bench_unixstream").unwrap();
         loop {
-            s.read_exact(&mut buf).unwrap();
-            s.write_all(&buf).unwrap();
+            for _ in 0..1000 {
+                s.read_exact(&mut buf).unwrap();
+                s.write_all(&buf).unwrap();
+            }
         }
     }
     else {
@@ -43,15 +45,15 @@ fn main() {
         let cid = match &child { &Some(ref c) => c.id(), &None => 0 };
         loop {
             i += 1;
-            sleep(Duration::from_millis(1000));
+            sleep(Duration::from_millis(100));
             if i > 10 {
                 break;
             }
             let start = Instant::now();
-            s.write_all(&buf).unwrap();
-            // unsafe { libc::kill(cid as i32, 18); }
-            // yield_now();
-            s.read_exact(&mut buf).unwrap();
+            for _ in 0..1000 {
+                s.write_all(&buf).unwrap();
+                s.read_exact(&mut buf).unwrap();
+            }
             println!("{:?}", Instant::now().duration_since(start));
         }
         child.unwrap().kill().unwrap();

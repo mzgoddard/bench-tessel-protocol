@@ -39,13 +39,15 @@ fn main() {
         sleep(Duration::from_millis(1000));
         let mut s = UnixStream::connect("/tmp/bench_unixstream").unwrap();
         loop {
-            s.read_exact(&mut buf).unwrap();
-            let mut fb = [49, 0];
-            f.seek(SeekFrom::Start(0)).unwrap();
-            f.read_exact(&mut fb).is_ok();
-            fb[0] = 49;
-            f.write_all(&fb).unwrap();
-            s.write_all(&buf).unwrap();
+            for _ in 0..1000 {
+                s.read_exact(&mut buf).unwrap();
+                let mut fb = [48, 0, 0, 0];
+                f.seek(SeekFrom::Start(0)).unwrap();
+                f.read_exact(&mut fb).is_ok();
+                fb[0] = 48; fb[1] = 0;
+                f.write_all(&fb).unwrap();
+                s.write_all(&buf).unwrap();
+            }
         }
     }
     else {
@@ -61,10 +63,10 @@ fn main() {
                 break;
             }
             let start = Instant::now();
-            s.write_all(&buf).unwrap();
-            // unsafe { libc::kill(cid as i32, 18); }
-            // yield_now();
-            s.read_exact(&mut buf).unwrap();
+            for _ in 0..1000 {
+                s.write_all(&buf).unwrap();
+                s.read_exact(&mut buf).unwrap();
+            }
             println!("{:?}", Instant::now().duration_since(start));
         }
         child.unwrap().kill().unwrap();
